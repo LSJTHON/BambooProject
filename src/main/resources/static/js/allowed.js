@@ -1,4 +1,4 @@
-const modifyButton = document.getElementById("modify-file-Config");
+const modifyAllowed = document.getElementById("modify-file-Config");
 const deleteUser = document.getElementById("delete-user");
 
 
@@ -21,8 +21,8 @@ if(deleteUser){
 }
 
 
-if(modifyButton){
-    modifyButton.addEventListener("click",(event) => {
+if(modifyAllowed){
+    modifyAllowed.addEventListener("click",(event) => {
         fetch("/modifyFileAllowed",{
             method : "PUT",
             headers: {

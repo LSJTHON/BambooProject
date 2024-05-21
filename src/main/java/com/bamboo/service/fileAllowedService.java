@@ -5,13 +5,19 @@ import com.bamboo.entity.AllowedFileExtensions;
 import com.bamboo.entity.FileConfig;
 import com.bamboo.repository.AllowedFileExtensionsRepository;
 import com.bamboo.repository.fileAllowedRepository;
-import jakarta.servlet.MultipartConfigElement;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @Service
@@ -20,7 +26,6 @@ public class fileAllowedService {
 
     private final AllowedFileExtensionsRepository fileExtensionsRepository;
     private final fileAllowedRepository fileAllowedRepository;
-
 
     public FileConfig findById(long id){
         return fileAllowedRepository.findById(id)

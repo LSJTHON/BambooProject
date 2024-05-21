@@ -51,8 +51,6 @@ public class WebOAuthSecurityConfig {
                         .userInfoEndpoint(userInfoEndpoint -> userInfoEndpoint
                                 .userService(myOAuth2MemberService))
                 )
-//                .logout((logout) -> logout
-//                        .logoutSuccessUrl("/"))
                 .logout((logout) -> logout
                         .logoutSuccessHandler(customLogoutSuccessHandler()))
 
@@ -61,33 +59,18 @@ public class WebOAuthSecurityConfig {
         return http.build();
     }
 
-//    private LogoutSuccessHandler customLogoutSuccessHandler() {
-//        MyOAuth2MemberService.userEmail=null;
-//        return null;
-//    }
-
     private LogoutSuccessHandler customLogoutSuccessHandler() {
         return (request, response, authentication) -> {
-            MyOAuth2MemberService.userEmail=null;
+            MyOAuth2MemberService.loginType = null;
             // 로그아웃 후 리다이렉트
             response.sendRedirect("/");
         };
     }
-
 
     @Bean
     public static BCryptPasswordEncoder bCryptPasswordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-
-//    @Autowired
-//    public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
-//        auth
-//                .inMemoryAuthentication()
-//                .withUser("admin1234@naver.com")
-//                .password(bCryptPasswordEncoder().encode("admin1234"))
-//                .roles("ADMIN");
-//    }
 }
 

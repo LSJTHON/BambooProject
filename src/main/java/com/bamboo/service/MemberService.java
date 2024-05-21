@@ -11,6 +11,8 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @RequiredArgsConstructor
 @Service
 public class MemberService {
@@ -50,7 +52,6 @@ public class MemberService {
         memberRepository.deletedEmail(email);
         return member;
     }
-
 
 }
 

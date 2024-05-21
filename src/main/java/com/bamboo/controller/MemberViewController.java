@@ -10,14 +10,14 @@ public class MemberViewController {
     @GetMapping("/login")
     public String login(){
 
-        return "oauthLogin";
+        return "member/oauthLogin";
     }
 
     @GetMapping("/signup")
-    public String signup(Model model){
+    public String signup(MemberFormDto request, Model model){
 
         model.addAttribute("MemberFormDto", new MemberFormDto());
 
-        return "signup";
+        return "member/signup";
     }
 }
