@@ -10,7 +10,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class BoardGoodMap {
+public class BoardMemberMap {
 
     @Id
     @Column(name = "board_member_map_id")

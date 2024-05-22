@@ -9,7 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
-public interface MemberRepository extends JpaRepository<Member,Long> {
+public interface MemberRepository extends JpaRepository<Member,String> {
     Optional<Member> findByEmail(String email); //사용자 정보를 이메일로 가져와
 
     @Modifying

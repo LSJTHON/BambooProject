@@ -1,0 +1,105 @@
+/* style.css */
+body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: #6a11cb;
+    background: -webkit-linear-gradient(to right, rgba(106, 17, 203, 1), rgba(37, 117, 252, 1));
+    background: linear-gradient(to right, rgba(106, 17, 203, 1), rgba(37, 117, 252, 1));
+    color: #fff;
+}
+
+.gradient-custom {
+    background: #6a11cb;
+    background: -webkit-linear-gradient(to right, rgba(106, 17, 203, 1), rgba(37, 117, 252, 1));
+    background: linear-gradient(to right, rgba(106, 17, 203, 1), rgba(37, 117, 252, 1));
+}
+
+.card {
+    border: none;
+    border-radius: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.form-control {
+    background-color: #1c1e21;
+    border: 1px solid #4e4e4e;
+    color: #fff;
+}
+
+.form-control:focus {
+    background-color: #1c1e21;
+    border-color: #007bff;
+    box-shadow: none;
+    color: #fff;
+}
+
+.form-outline .form-label {
+    color: #bbb;
+}
+
+.btn-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #0056b3;
+    border-color: #004085;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+    border-color: #545b62;
+}
+
+hr {
+    border-top: 1px solid #bbb;
+}
+
+h2 {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.container {
+    max-width: 500px;
+    padding: 2rem;
+    border-radius: 1rem;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+.form-outline {
+    position: relative;
+    margin-bottom: 1.5rem;
+}
+
+.form-outline .form-label {
+    position: absolute;
+    top: -1rem;
+    left: 0;
+    font-size: 0.85rem;
+    color: #ccc;
+    pointer-events: none;
+    transition: 0.2s ease all;
+}
+
+.form-outline input:focus + .form-label,
+.form-outline input:not(:placeholder-shown) + .form-label {
+    top: -1.5rem;
+    font-size: 0.75rem;
+    color: #007bff;
+}
+
+img {
+    max-width: 100%;
+    height: auto;
+}

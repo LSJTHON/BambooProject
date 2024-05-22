@@ -10,18 +10,22 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.Collection;
 import java.util.List;
 
+import static com.bamboo.config.oauth.MyOAuth2MemberService.loginType;
+
 @Entity
 @Table(name = "member")
 @Getter
 @Setter
 @ToString
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 public class Member extends BaseTimeEntity implements UserDetails {
-    @Column(name = "id",updatable = false)
-    private Long id;
+    //@NoArgsConstructor(access = AccessLevel.PROTECTED)
+
+//    @Column(name = "id",updatable = false)
+//    private Long id;
 
     @Id
-    @Column(name = "member_email", unique = true)
+    @Column(name = "member_email")
     private String email;
 
     @Column(name = "member_name")
@@ -43,6 +47,14 @@ public class Member extends BaseTimeEntity implements UserDetails {
         this.role = role;
     }
 
+    public void updateMemberInfo(String name, String password){
+        if(loginType == null){
+            this.name = name;
+            this.password = password;
+        }else{
+            this.name = name;
+        }
+    }
 
     public void updateDeleted(boolean isDeleted){
         this.isDeleted = isDeleted;

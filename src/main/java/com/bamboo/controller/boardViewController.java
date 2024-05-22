@@ -7,6 +7,7 @@ import com.bamboo.service.MultipartConfigService;
 import com.bamboo.service.fileAllowedService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 @RequiredArgsConstructor
 @Controller
 public class boardViewController {
+
 
     @Autowired
     private MultipartConfigService multipartConfigService;
@@ -28,28 +30,14 @@ public class boardViewController {
 
         multipartConfigService.updateMaxUploadSize(maxFile.getMaxFileSize(), 300L);
 
-
         FileConfig fileConfig = fileAllowedService.findById(1L);
         String extensions = fileAllowedService.getExtensionsByFileConfigId(1L);
+
         model.addAttribute("extensions", extensions);
         model.addAttribute("allowed",fileConfig);
         model.addAttribute("loginType",MyOAuth2MemberService.loginType);
 
         return "fileAllowed";
-
     }
 
-    @GetMapping("/")
-    public String getPage(Model model){
-
-        model.addAttribute("loginType",MyOAuth2MemberService.loginType);
-        return "mainPage";
-    }
-
-    @GetMapping("/1")
-    public String getPage2(Model model){
-
-        model.addAttribute("loginType",MyOAuth2MemberService.loginType);
-        return "testHtml";
-    }
 }

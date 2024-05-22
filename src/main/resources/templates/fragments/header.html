@@ -12,7 +12,7 @@
                 aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
-        <a class="navbar-brand" href="/">Shop</a>
+        <a class="navbar-brand" href="/">Home</a>
 
         <div class="collapse navbar-collapse" id="navbarTogglerDemo03">
             <ul class="navbar-nav mr-auto mt-2 mt-lg-0">
@@ -48,30 +48,31 @@
 
                 <li class="nav-item" sec:authorize="isAuthenticated()">
                     <input type="hidden" class="nav-link"
-                       th:if="${loginType != null}"
-                       th:value="${#authentication.principal.attributes['kakao_account']['email']}">
+                           th:if="${loginType != null}"
+                           th:value="${#authentication.principal.attributes['properties']['nickname']}">
                     <a href="#" class="nav-link"
                        th:if="${loginType != null}"
-                       th:text="${#authentication.principal.attributes['properties']['nickname']}"></a>
+                       th:text="${#authentication.principal.attributes['kakao_account']['email']}"></a>
                     <input type="hidden" class="nav-link"
-                       th:if="${loginType == null}"
-                       th:value="${#authentication.principal.username}">
+                           th:if="${loginType == null}"
+                           th:value="${#authentication.getName()}">
                     <a href="#" class="nav-link"
                        th:if="${loginType == null}"
-                       th:text="${#authentication.principal.name}"></a>
+                       th:text="${#authentication.getName()} + '님'"></a>
                 </li>
                 <li>
-                    <a href="#" class="nav-link"
+                    <a href="/modifyMember" class="nav-link"
                        sec:authorize="isAuthenticated()">[내 정보]</a>
                 </li>
 
                 <li class="nav-item"
                     sec:authorize="isAuthenticated()">
-                    <a href="logout" class="nav-link" role="button">로그아웃</a>
+                    <a href="/logout" class="nav-link" role="button">로그아웃</a>
                 </li>
             </ul>
         </div>
     </nav>
+
 </div>
 
 </html>

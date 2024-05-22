@@ -1,5 +1,6 @@
 package com.bamboo.controller;
 
+import com.bamboo.config.oauth.MyOAuth2MemberService;
 import com.bamboo.dto.MemberFormDto;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,5 +20,14 @@ public class MemberViewController {
         model.addAttribute("MemberFormDto", new MemberFormDto());
 
         return "member/signup";
+    }
+
+    @GetMapping("/modifyMember")
+    public String modifyMember(Model model){
+
+        model.addAttribute("MemberFormDto", new MemberFormDto());
+        model.addAttribute("loginType", MyOAuth2MemberService.loginType);
+
+        return "member/modifyMember";
     }
 }

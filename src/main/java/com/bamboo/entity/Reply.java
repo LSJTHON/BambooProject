@@ -39,4 +39,5 @@ public class Reply {
     @CreatedDate
     @Column(updatable = false)
     private LocalDateTime regTime;
+
 }

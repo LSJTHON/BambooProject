@@ -1,7 +1,6 @@
 package com.bamboo.dto;
 
 
-import com.bamboo.entity.FileConfig;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

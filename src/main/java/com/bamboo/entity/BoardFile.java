@@ -24,4 +24,10 @@ public class BoardFile {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "board_id")
     private Board board;
+
+    public void updateBoardFile(String oriFileName, String fileName, String fileUrl) {
+        this.oriFileName = oriFileName;
+        this.fileName = fileName;
+        this.fileUrl = fileUrl;
+    }
 }

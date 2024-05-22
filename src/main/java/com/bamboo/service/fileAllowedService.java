@@ -41,7 +41,6 @@ public class fileAllowedService {
 
         fileExtensionsRepository.deleteExtensions();
 
-
         FileConfig fileConfig = fileAllowedRepository.findById(1L)
                 .orElseThrow(()->new IllegalArgumentException("파일의 개수와 크기를 업데이트 할 수 없습니다."));
 
@@ -69,4 +68,10 @@ public class fileAllowedService {
         fileExtensionsRepository.updateConfigId();
         return fileConfig;
     }
+
+    public void defaultFileAllowed(){
+        fileAllowedRepository.defualtFileAllowed();
+        fileExtensionsRepository.defualtExtensions();
+    }
+
 }

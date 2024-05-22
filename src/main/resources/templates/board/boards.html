@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layouts/layout1}">
+
+<!-- 사용자 스크립트 추가 -->
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        $(document).ready(function(){
+            $("#searchBtn").on("click",function(e) {
+                e.preventDefault();
+                page(0);
+            });
+        });
+
+        function page(page){
+            var searchBy = $("#searchBy").val();
+            var searchQuery = $("#searchQuery").val();
+
+            location.href="/" + page +
+                "?searchBy=" + encodeURIComponent(searchBy) +
+                "&searchQuery=" + encodeURIComponent(searchQuery);
+        }
+    </script>
+
+</th:block>
+
+<div layout:fragment="content">
+
+    <form th:action="@{'/' + ${boards.number}}" role="form" method="get" th:object="${boards}">
+        <table class="table">
+            <thead>
+            <tr>
+                <th>번호</a></th>
+                <th><a href="?sort=title">제목</a></th>
+                <th><a href="?sort=member.name">이름</a></th>
+                <th>조회수</a></th>
+                <th><a href="?sort=regTime">작성일</a></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="board, status: ${boards.getContent()}">
+                <td th:text="${board.id}"></td>
+                <td>
+                    <a th:href="'/boards/'+${board.id}" th:text="${board.title}"></a>
+                </td>
+                <td th:text="${board.member.getName()}"></td>
+                <td th:text="${board.hit}"></td>
+                <td th:text="${#temporals.format(board.regTime, 'yy.MM.dd HH:mm:ss')}"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="d-flex justify-content-end mt-3" sec:authorize="isAuthenticated()">
+            <a href="/boards/create" class="btn btn-success">글 작성하기</a>
+        </div>
+
+        <div th:with="start=${(boards.number/maxPage)*maxPage + 1}, end=(${(boards.totalPages == 0) ? 1 : (start + (maxPage - 1) < boards.totalPages ? start + (maxPage - 1) : boards.totalPages)})" >
+            <ul class="pagination justify-content-center">
+
+                <li class="page-item" th:classappend="${boards.first}?'disabled'">
+                    <a th:onclick="'javascript:page(' + ${boards.number - 1} + ')'" aria-label='Previous' class="page-link">
+                        <span aria-hidden='true'>이전</span>
+                    </a>
+                </li>
+
+                <li class="page-item" th:each="page: ${#numbers.sequence(start, end)}" th:classappend="${boards.number eq page - 1}?'active':''">
+                    <a th:onclick="'javascript:page(' + ${page - 1} + ')'" th:inline="text" class="page-link">[[${page}]]</a>
+                </li>
+
+                <li class="page-item" th:classappend="${boards.last}?'disabled'">
+                    <a th:onclick="'javascript:page(' + ${boards.number + 1} + ')'" aria-label='Next' class="page-link">
+                        <span aria-hidden='true'>다음</span>
+                    </a>
+                </li>
+
+            </ul>
+        </div>
+
+        <div class="form-inline justify-content-center" th:object="${boardSearchDto}">
+            <select th:field="*{searchBy}" class="form-control" style="width:auto;">
+                <option value="title">제목</option>
+                <option value="content">본문</option>
+                <option value="name">이름</option>
+            </select>
+            <input th:field="*{searchQuery}" type="text" class="form-control" placeholder="#을 붙여 해시태그 검색">
+            <button id="searchBtn" type="submit" class="btn btn-primary">검색</button>
+        </div>
+
+    </form>
+
+</div>
+
+</html>
