@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Update</title>
+    <style>
+        .fieldError{
+            color: #bd2130;
+        }
+
+    </style>
+
+    <script>
+            function showAlert() {
+            alert("프로필이 성공적으로 업데이트되었습니다. 다시 로그인 하세요!");
+        }
+    </script>
+    </script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/modifyMember.css">
+</head>
+<body>
+<div th:replace="fragments/header :: header"></div>
+<br><br><br><br><br><br><br><br><br>
+<div class="container">
+    <h2>Update Your Profile</h2>
+
+    <form th:action="@{/modifyMember}" method="POST" th:object="${MemberFormDto}">
+        <div class="form-group">
+            <label for="modifyName">Name</label>
+            <input type="text" id="modifyName" name="name" placeholder="새로운 이름을 입력하세요." required>
+            <p th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="fieldError">Incorrect data</p>
+        </div>
+        <div class="form-group" th:if="${loginType != null}">
+            <input type="hidden" name="password">
+            <input type="hidden" name="confirmPassword">
+        </div>
+        <div class="form-group" th:if="${loginType == null}">
+            <label for="modifyPassword">Password</label>
+            <input type="text" id="modifyPassword" name="password" placeholder="새로운 비밀번호을 입력하세요." required>
+            <p th:if="${#fields.hasErrors('password')}" th:errors="*{password}" class="fieldError">Incorrect data</p>
+        </div>
+        <div class="form-group" th:if="${loginType == null}">
+            <label for="confirmModifyPassword">Confirm Password</label>
+            <input type="text" id="confirmModifyPassword" name="confirmPassword" placeholder="비밀번호를 한번 더 입력하세요." required>
+            <p th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}" class="fieldError">Incorrect data</p>
+        </div>
+
+        <!-- 숨겨진 이메일 필드 -->
+        <input type="hidden"
+               th:if="${loginType != null}"
+               name="email"
+               th:value="${#authentication.principal.getAttribute('kakao_account').email}">
+
+        <input type="hidden"
+               th:if="${loginType == null}"
+               name="email"
+               th:value="${#authentication.principal.username}">
+
+        <button type="submit" onclick="showAlert()">Update</button>
+
+    </form>
+</div>
+</body>
+</html>

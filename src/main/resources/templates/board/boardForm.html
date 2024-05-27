@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout" layout:decorate="~{layouts/layout1}">
+
+<head>
+<!--    <meta name="_csrf" th:content="${_csrf.token}"/>-->
+<!--    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>-->
+</head>
+
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        $(document).ready(function() {
+            var errorMessage = /*[[${errorMessage}]]*/ null;
+            if (errorMessage != null) {
+                alert(errorMessage);
+            }
+
+            bindHashtagEvent();
+            bindFileEvent();
+            bindDeleteEvent();
+
+            // 기존 파일들과 태그들을 표시
+            var existingFiles = /*[[${boardFormDto.boardFileDtoList}]]*/ [];
+            var existingHashtags = /*[[${#strings.arraySplit(boardFormDto.hashtag, ' ')}]]*/ [];
+
+            function addExistingFile(fileName, fileId) {
+                var fileElement = `<span class="badge badge-primary mr-1">${fileName} <span class="remove-file" style="cursor: pointer;" data-file-id="${fileId}">&times;</span></span>`;
+                $("#fileContainer").append(fileElement);
+                var currentFileIds = $("#fileIdsField").val();
+                $("#fileIdsField").val(currentFileIds + fileId + ' ');
+            }
+
+            function addExistingHashtag(tag) {
+                var tagElement = `<span class="badge badge-primary mr-1">${tag} <span class="remove-tag" style="cursor: pointer;">&times;</span></span>`;
+                $("#hashtagContainer").append(tagElement);
+            }
+
+            existingFiles.forEach(function(file) {
+                addExistingFile(file.oriFileName, file.id);
+            });
+
+            existingHashtags.forEach(function(tag) {
+                addExistingHashtag(tag);
+            });
+        });
+
+        // 해시태그 이벤트 바인딩
+        function bindHashtagEvent() {
+            $("#hashtagInput").on("input", function(event) {
+                var value = $(this).val();
+                if (value.charAt(0) !== '#') {
+                    $(this).val('#' + value);
+                }
+                if (event.originalEvent.inputType === 'insertText' && event.originalEvent.data === ' ') {
+                    addHashtag(value.trim());
+                    $(this).val('#');
+                }
+            });
+
+            function addHashtag(tag) {
+                if ($("#hashtagContainer .badge").filter(function() { return $(this).text().trim() === tag + ' ×'; }).length > 0) {
+                    alert("이미 존재하는 해시태그입니다.");
+                    return;
+                }
+                var tagElement = `<span class="badge badge-primary mr-1">${tag} <span class="remove-tag" style="cursor: pointer;">&times;</span></span>`;
+                $("#hashtagContainer").append(tagElement);
+            }
+
+            $("#hashtagContainer").on("click", ".remove-tag", function() {
+                var tagElement = $(this).parent();
+                var tagText = tagElement.text().slice(0, -1).trim();
+                tagElement.remove();
+                var removedHashtags = $("#removedHashtags").val();
+                $("#removedHashtags").val(removedHashtags + tagText + ' ');
+            });
+        }
+
+        // 파일 이벤트 바인딩
+        function bindFileEvent() {
+            $("#fileInput").on("change", function() {
+                var files = $(this).prop('files'); // 선택된 파일들
+
+                for (var i = 0; i < files.length; i++) {
+                    var fileName = files[i].name;
+                    if ($("#fileContainer .badge").filter(function() { return $(this).text().trim() === fileName + ' ×'; }).length > 0) {
+                        alert("이미 존재하는 파일입니다.");
+                        return;
+                    }
+
+                    // 파일을 등록칸 아래에 출력
+                    addFile(files[i]);
+                }
+
+                $(this).val(''); // 파일 선택 필드를 초기화하여 동일한 파일을 다시 선택할 수 있도록 함
+            });
+
+            function addFile(file) {
+                var fileName = file.name;
+                var fileElement = `<span class="badge badge-primary mr-1">${fileName} <span class="remove-file" style="cursor: pointer;">&times;</span></span>`;
+                $("#fileContainer").append(fileElement);
+
+                var fileInput = $("#hiddenFileInput")[0];
+                var dt = new DataTransfer();
+                for (var i = 0; i < fileInput.files.length; i++) {
+                    dt.items.add(fileInput.files[i]);
+                }
+                dt.items.add(file);
+                fileInput.files = dt.files;
+            }
+
+            $("#fileContainer").on("click", ".remove-file", function() {
+                var fileName = $(this).parent().text().slice(0, -1).trim();
+                var fileId = $(this).data('file-id');
+                var fileInput = $("#hiddenFileInput")[0];
+                var dt = new DataTransfer();
+                for (var i = 0; i < fileInput.files.length; i++) {
+                    if (fileInput.files[i].name !== fileName) {
+                        dt.items.add(fileInput.files[i]);
+                    }
+                }
+                fileInput.files = dt.files;
+
+                $(this).parent().remove();
+
+                if (fileId) {
+                    var currentFileIds = $("#fileIdsField").val();
+                    $("#fileIdsField").val(currentFileIds.replace(fileId + ' ', ''));
+                }
+            });
+        }
+
+        // 폼 제출 전에 파일 입력 필드를 업데이트하여 모든 파일을 포함하도록 설정
+        $('form').on('submit', function(event) {
+            // 기존 파일 필드 값 업데이트
+            var fileInput = $("#hiddenFileInput")[0];
+            var dt = new DataTransfer();
+            $("#fileContainer span").each(function() {
+                var fileName = $(this).text().trim();
+                for (var i = 0; i < fileInput.files.length; i++) {
+                    if (fileInput.files[i].name === fileName) {
+                        dt.items.add(fileInput.files[i]);
+                    }
+                }
+            });
+            fileInput.files = dt.files;
+
+            // 해시태그 필드 값 업데이트
+            var tags = [];
+            $("#hashtagContainer .badge").each(function() {
+                tags.push($(this).text().slice(0, -1).trim());
+            });
+            $("#hashtagField").val(tags.join(' '));
+        });
+
+        // 삭제 이벤트 바인딩
+        function bindDeleteEvent() {
+            $("#deleteButton").on("click", function() {
+                if (confirm("정말 삭제하시겠습니까?")) {
+                    var boardId = /*[[${boardFormDto.id}]]*/ 0;
+                    $.ajax({
+                        url: "/user/board/delete/" + boardId,
+                        type: "POST",
+                        success: function(response) {
+                            alert("글이 삭제되었습니다.");
+                            window.location.href = "/";
+                        },
+                        error: function(xhr, status, error) {
+                            alert("삭제 중 오류가 발생했습니다.");
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+</th:block>
+
+<th:block layout:fragment="css">
+    <style>
+        .input-group { margin-bottom: 15px; }
+        .img-div { margin-bottom: 10px; }
+        .fieldError { color: #bd2130; }
+        #fileInputs { margin-bottom: 15px; }
+        #fileContainer .badge { font-size: 14px; padding: 5px 10px; }
+        #hashtagContainer .badge { font-size: 14px; padding: 5px 10px; }
+        #fileContainer { margin-bottom: 20px; }
+        .remove-file, .remove-tag { color: red; cursor: pointer; }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+    <form role="form" method="post" enctype="multipart/form-data" th:object="${boardFormDto}"
+          th:action="@{${#strings.isEmpty(boardFormDto.id) ? '/user/board/new' : '/user/board/update/' + boardFormDto.id}}">
+
+        <p class="h2" th:text="${#strings.isEmpty(boardFormDto.id) ? '글 등록' : '글 수정'}">글 등록</p>
+
+        <input type="hidden" th:field="*{id}">
+        <input type="hidden" id="hashtagField" th:field="*{hashtag}">
+        <input type="hidden" id="removedHashtags" name="removedHashtags">
+        <input type="hidden" id="fileIdsField" th:field="*{boardFileIds}">
+        <input type="file" id="hiddenFileInput" name="boardFile" multiple style="display: none;">
+
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">제목</span>
+            </div>
+            <input type="text" th:field="*{title}" class="form-control" placeholder="제목을 입력해주세요">
+        </div>
+        <p th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="fieldError">Incorrect data</p>
+
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">내용</span>
+            </div>
+            <textarea class="form-control" aria-label="With textarea" th:field="*{content}"></textarea>
+        </div>
+        <p th:if="${#fields.hasErrors('content')}" th:errors="*{content}" class="fieldError">Incorrect data</p>
+
+        <div class="input-group">
+            <div class="custom-file img-div">
+                <input type="file" class="custom-file-input" id="fileInput" multiple>
+                <label class="custom-file-label">파일선택</label>
+            </div>
+        </div>
+        <div id="fileContainer" class="mt-2"></div>
+
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">해시태그</span>
+            </div>
+            <input type="text" id="hashtagInput" class="form-control" placeholder="스페이스를 눌러 등록해주세요.">
+        </div>
+        <div id="hashtagContainer" class="mt-2"></div>
+
+        <div style="text-align: center">
+            <button type="submit" class="btn btn-primary" th:text="${#strings.isEmpty(boardFormDto.id) ? '등록' : '수정'}">저장</button>
+            <button type="button" class="btn btn-danger" id="deleteButton" th:if="${not #strings.isEmpty(boardFormDto.id)}">삭제</button>
+        </div>
+    </form>
+</div>
+
+</html>

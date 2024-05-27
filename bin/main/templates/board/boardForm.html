@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
+
+<!-- 사용자 스크립트 추가 -->
+<th:block layout:fragment="script">
+
+    <script th:inline="javascript">
+        $(document).ready(function () {
+            var errorMessage = [[${errorMessage}]];
+            if (errorMessage != null) {
+                alert(errorMessage);
+            }
+
+            bindDomEvent();
+
+        });
+
+        function bindDomEvent() {
+            $(".custom-file-input").on("change", function () {
+                var fileName = $(this).val().split("\\").pop();  //이미지 파일명
+                var fileExt = fileName.substring(fileName.lastIndexOf(".") + 1); // 확장자 추출
+                fileExt = fileExt.toLowerCase(); //소문자 변환
+
+                // if (fileExt == '') {
+                //     clearInputFile(this);
+                //     return;
+                // } else if (fileExt != "jpg" && fileExt != "jpeg" && fileExt != "gif" && fileExt != "png" && fileExt != "bmp" && fileExt != "webp" && fileExt != "avif") {
+                //     alert("이미지 파일만 등록이 가능합니다.");
+                //     clearInputFile(this);
+                //     return;
+                // }
+
+                $(this).siblings(".custom-file-label").html(fileName);
+                setThumbnail(this);
+            });
+        }
+
+        function setThumbnail(input) {
+            var $imageContainer = $(input).siblings(".image_container");
+            $imageContainer.empty(); // 이미지 컨테이너 초기화
+
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function (event) {
+                    var img = document.createElement("img");
+                    img.setAttribute("src", event.target.result);
+                    $imageContainer.html(img);
+                };
+
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        function clearInputFile(input) {
+            // 파일 선택 태그 클리어
+            $(input).val('');
+
+            // 미리보기 제거
+            var $imageContainer = $(input).siblings(".image_container");
+            $imageContainer.empty();
+
+            // 라벨 클리어
+            $(input).siblings(".custom-file-label").html('프로필 이미지 선택');
+        }
+
+    </script>
+
+</th:block>
+
+<!-- 사용자 CSS 추가 -->
+<th:block layout:fragment="css">
+    <style>
+        .input-group {
+            margin-bottom: 15px
+        }
+
+        .img-div {
+            margin-bottom: 10px
+        }
+
+        .fieldError {
+            color: #bd2130;
+        }
+
+        .image_container {
+            overflow: hidden; /* 넘치는 이미지를 숨김 */
+        }
+
+        .image_container img {
+            padding-top: 20px;
+            max-width: 100px; /* 이미지의 최대 너비 설정 */
+            max-height: 100px; /* 이미지의 최대 높이 설정 */
+        }
+    </style>
+</th:block>
+
+<div layout:fragment="content">
+
+    <form role="form" method="post" enctype="multipart/form-data" th:object="${boardDto}">
+
+        <div th:if="${#strings.isEmpty(boardDto.getTitle())}">
+            <p class="h2">
+                게시글 등록
+            </p>
+        </div>
+        <div th:unless="${#strings.isEmpty(boardDto.getTitle())}">
+            <p class="h2">
+                게시글 수정
+            </p>
+        </div>
+
+        <input type="hidden" th:field="*{id}">
+
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">제목</span>
+            </div>
+            <input type="text" th:field="*{title}" class="form-control" placeholder="제목을 입력해주세요">
+        </div>
+        <p th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="fieldError">Incorrect data</p>
+
+        <div class="input-group">
+            <div class="input-group-prepend">
+                <span class="input-group-text">내용</span>
+            </div>
+            <textarea class="form-control" aria-label="With textarea" th:field="*{content}"></textarea>
+        </div>
+        <p th:if="${#fields.hasErrors('content')}" th:errors="*{content}" class="fieldError">Incorrect
+            data</p>
+
+        <div th:if="${#lists.isEmpty(boardDto.boardFileDtoList)}">
+            <div class="form-group" th:each="num: ${#numbers.sequence(1,5)}">
+                <div class="custom-file img-div">
+                    <input type="file" class="custom-file-input" name="boardFiles" onchange="setThumbnail(this);">
+                    <label class="custom-file-label" th:text="첨부파일 + ${num}"></label>
+                    <div class="image_container"></div>
+                </div>
+            </div>
+        </div>
+
+        <div th:if = "${not #lists.isEmpty(boardDto.boardFileDtoList)}">
+            <div class="form-group" th:each="boardFileDto, status: ${boardDto.boardFileDtoList}">
+                <div class="custom-file img-div">
+                    <input type="file" class="custom-file-input" name="boardFiles" onchange="setThumbnail(this);">
+                    <input type="hidden" name="itemImgIds" th:value="${boardFileDto.id}">
+                    <label class="custom-file-label" th:text="${not #strings.isEmpty(boardFileDto.oriFileName)} ? ${boardFileDto.oriFileName} : '첨부파일' + ${status.index+1}"></label>
+                    <div class="image_container">
+                        <div th:if = "${not #strings.isEmpty(boardFileDto.fileUrl)}">
+                            <img th:src="${boardFileDto.fileUrl}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center">
+            <button th:if="${#strings.isEmpty(boardDto.getTitle())}" th:formaction="@{/boards/create}"
+                    type="submit" class="btn btn-primary">저장
+            </button>
+            <button th:unless="${#strings.isEmpty(boardDto.getTitle())}"
+                    th:formaction="@{'/boards/update' + ${boardDto.id} }" type="submit"
+                    class="btn btn-primary">수정
+            </button>
+        </div>
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}">
+
+    </form>
+
+</div>
+
+</html>
