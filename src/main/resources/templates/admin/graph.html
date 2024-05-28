@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/layout1}">
+<head>
+  <meta charset="UTF-8">
+  <title>방문자 수 및 가입자 수 집계 페이지</title>
+  <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+  <style>
+    .button-container {
+      position: fixed;
+      top: 50%;
+      right: 20px;
+      transform: translateY(-50%);
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .styled-button {
+      background: linear-gradient(135deg, #6b73ff, #000dff);
+      border: none;
+      color: white;
+      padding: 10px 24px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background-color 0.3s, box-shadow 0.3s;
+    }
+
+    .styled-button:hover {
+      background: linear-gradient(135deg, #5a63d8, #0000b2);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    }
+    #curve_chart2 {
+      width: 100%;
+      height: 600px;
+    }
+  </style>
+  <script type="text/javascript">
+    window.onload = function() {
+      if (sessionStorage.getItem('scrollPos')) {
+        window.scrollTo(0, sessionStorage.getItem('scrollPos'));
+      }
+    };
+
+    // 페이지 언로드 시 스크롤 위치 저장
+    window.onbeforeunload = function() {
+      sessionStorage.setItem('scrollPos', window.scrollY);
+    };
+
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+      var data = new google.visualization.DataTable();
+      data.addColumn('date', '날짜');
+      data.addColumn('number', '방문자 수');
+      data.addColumn('number', '가입자 수');
+
+      var visitRows = JSON.parse('[[${visitData}]]'.replace(/&quot;/g, '"'));
+      var memberRows = JSON.parse('[[${memberData}]]'.replace(/&quot;/g, '"'));
+
+      var visitParsedRows = visitRows.map(function(row) {
+        return [new Date(row.date), row.count];
+      });
+
+      var memberParsedRows = aggregateMemberData(memberRows);
+
+      var combinedRows = mergeData(visitParsedRows, memberParsedRows);
+
+      data.addRows(combinedRows);
+
+      var period = '[[${period}]]';
+
+      var hAxisOptions = {
+        title: 'Date',
+        format: 'yyyy-MM-dd'
+      };
+
+      if (period === 'week') {
+        hAxisOptions.ticks = getTicksForPeriod(combinedRows, 7);
+      } else if (period === 'month') {
+        hAxisOptions.ticks = getTicksForPeriod(combinedRows, 7);
+      } else if (period === 'year') {
+        hAxisOptions.ticks = getTicksForPeriod(combinedRows, 7);
+      }
+
+      var options = {
+        title: '방문자 수 및 가입자 수 집계',
+        curveType: 'function',
+        legend: { position: 'bottom' },
+        hAxis: hAxisOptions,
+      };
+
+      var chart = new google.visualization.LineChart(document.getElementById('curve_chart'));
+
+      chart.draw(data, options);
+    }
+
+    function aggregateMemberData(data) {
+      const aggregatedData = {};
+      data.forEach(function(row) {
+        const date = new Date(row.date).toISOString().split('T')[0]; // 날짜만 추출
+        if (!aggregatedData[date]) {
+          aggregatedData[date] = 0;
+        }
+        aggregatedData[date]++;
+      });
+      return Object.keys(aggregatedData).map(function(date) {
+        return [new Date(date), aggregatedData[date]];
+      });
+    }
+
+    function mergeData(visitData, memberData) {
+      const combinedData = [];
+      const visitMap = new Map(visitData.map(item => [item[0].getTime(), item]));
+      const memberMap = new Map(memberData.map(item => [item[0].getTime(), item]));
+
+      const allDates = new Set([...visitMap.keys(), ...memberMap.keys()]);
+
+      allDates.forEach(date => {
+        const visitCount = visitMap.has(date) ? visitMap.get(date)[1] : 0;
+        const memberCount = memberMap.has(date) ? memberMap.get(date)[1] : 0;
+        combinedData.push([new Date(date), visitCount, memberCount]);
+      });
+
+      combinedData.sort((a, b) => a[0] - b[0]);
+      return combinedData;
+    }
+
+    function getTicksForPeriod(data, numTicks) {
+      var ticks = [];
+      var step = Math.ceil(data.length / numTicks);
+      for (var i = 0; i < data.length; i += step) {
+        ticks.push(data[i][0]);
+      }
+      return ticks;
+    }
+
+    function updatePeriod(period) {
+      window.location.href = '/graph?period=' + period;
+    }
+  </script>
+
+  <script type="text/javascript">
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawChart);
+
+    function drawChart() {
+      var data = new google.visualization.DataTable();
+      data.addColumn('date', '날짜');
+      data.addColumn('number', '게시글 수');
+      data.addColumn('number', '댓글 수');
+
+      var postRows = JSON.parse('[[${postData}]]'.replace(/&quot;/g, '"'));
+      var replyRows = JSON.parse('[[${replyData}]]'.replace(/&quot;/g, '"'));
+
+      var postParsedRows = aggregatePostData(postRows);
+      var replyParsedRows = aggregateReplyData(replyRows);
+
+      var combinedRows = mergePostReplyData(postParsedRows, replyParsedRows);
+
+      data.addRows(combinedRows);
+
+      var period = '[[${period}]]';
+
+      var hAxisOptions = {
+        title: 'Date',
+        format: 'yyyy-MM-dd'
+      };
+
+      if (period === 'week') {
+        hAxisOptions.ticks = getTicksForPeriod(combinedRows, 7);
+      } else if (period === 'month') {
+        hAxisOptions.ticks = getTicksForPeriod(combinedRows, 30);
+      } else if (period === 'year') {
+        hAxisOptions.ticks = getTicksForPeriod(combinedRows, 12);
+      }
+
+      var options = {
+        title: '게시글과 댓글 집계',
+        curveType: 'function',
+        legend: { position: 'bottom' },
+        hAxis: hAxisOptions,
+      };
+
+      var chart = new google.visualization.LineChart(document.getElementById('curve_chart2'));
+
+      chart.draw(data, options);
+    }
+
+    function aggregatePostData(data) {
+      const aggregatedData = {};
+      data.forEach(function(row) {
+        const date = new Date(row.date).toISOString().split('T')[0]; // 날짜만 추출
+        if (!aggregatedData[date]) {
+          aggregatedData[date] = 0;
+        }
+        aggregatedData[date]++;
+      });
+      return Object.keys(aggregatedData).map(function(date) {
+        return [new Date(date), aggregatedData[date]];
+      });
+    }
+
+    function aggregateReplyData(data) {
+      const aggregatedData = {};
+      data.forEach(function(row) {
+        const date = new Date(row.date).toISOString().split('T')[0]; // 날짜만 추출
+        if (!aggregatedData[date]) {
+          aggregatedData[date] = 0;
+        }
+        aggregatedData[date]++;
+      });
+      return Object.keys(aggregatedData).map(function(date) {
+        return [new Date(date), aggregatedData[date]];
+      });
+    }
+
+    function mergePostReplyData(postData, replyData) {
+      const combinedData = [];
+      const postMap = new Map(postData.map(item => [item[0].getTime(), item]));
+      const replyMap = new Map(replyData.map(item => [item[0].getTime(), item]));
+
+      const allDates = new Set([...postMap.keys(), ...replyMap.keys()]);
+
+      allDates.forEach(date => {
+        const postCount = postMap.has(date) ? postMap.get(date)[1] : 0;
+        const replyCount = replyMap.has(date) ? replyMap.get(date)[1] : 0;
+        combinedData.push([new Date(date), postCount, replyCount]);
+      });
+
+      combinedData.sort((a, b) => a[0] - b[0]);
+      return combinedData;
+    }
+
+    function getTicksForPeriod(data, numTicks) {
+      var ticks = [];
+      var step = Math.ceil(data.length / numTicks);
+      for (var i = 0; i < data.length; i += step) {
+        ticks.push(data[i][0]);
+      }
+      return ticks;
+    }
+
+    function updatePeriod(period) {
+      window.location.href = '/graph?period=' + period;
+    }
+  </script>
+</head>
+<body>
+<div layout:fragment="content">
+  <div class="button-container">
+    <button class="styled-button" onclick="updatePeriod('week')">Last Week</button>
+    <button class="styled-button" onclick="updatePeriod('month')">Last Month</button>
+    <button class="styled-button" onclick="updatePeriod('year')">Last Year</button>
+  </div>
+  <div id="curve_chart" style="width: 100%; height: 600px;"></div>
+  <div id="curve_chart2" style="width: 100%; height: 600px;"></div>
+</div>
+</body>
+</html>
